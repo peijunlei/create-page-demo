@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Col, Form, Row, Space } from 'antd';
+import { Button, Col, Form , Row, Space } from 'antd';
+import type { FormInstance } from 'antd';
 import { FormItemConfig, generateFormItem } from '../utils/pageGenerator.tsx';
 
 /**
@@ -9,7 +10,7 @@ interface ConfigurableSearchProps {
   /**
    * 表单实例
    */
-  form: any;
+  form: FormInstance<any>;
   /**
    * 搜索表单配置
    */

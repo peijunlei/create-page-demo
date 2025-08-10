@@ -28,13 +28,6 @@ const App: React.FC = () => {
                 key: '2',
                 label: <Link to="/page-config">页面配置向导</Link>
               },
-              {
-                key: '3',
-                label: <Button onClick={() => {
-                  setTheme(theme === 'dark' ? 'light' : 'dark');
-                }}>页面配置向导</Button>
-              },
-
             ]}
           />
         </Header>

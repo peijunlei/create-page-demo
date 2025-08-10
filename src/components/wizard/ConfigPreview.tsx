@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button, Card, Space, Tabs, Typography } from 'antd';
 import { PageConfig } from '../../utils/pageGenerator.tsx';
 import ConfigurableListPage from '../ConfigurableListPage';
@@ -8,7 +8,8 @@ import {
   generateTableCode,
   generateEntryCode,
   generateWebApiCode
-} from '../../utils/templateGenerator';
+} from '../../utils/new-templateGenerator';
+import CodeCopy from '../CodeCopy/index.tsx';
 
 const { TabPane } = Tabs;
 const { Title, Paragraph, Text } = Typography;
@@ -18,31 +19,29 @@ interface ConfigPreviewProps {
   onPrev: () => void;
   onComplete: () => void;
 }
+// 处理枚举映射字符串转换为对象
+const processConfig = (config: PageConfig): PageConfig => {
+  const processedConfig = { ...config };
+  // 处理表格列中的枚举映射
+  if (processedConfig.columns) {
+    processedConfig.columns = processedConfig.columns.map(column => {
+      const newColumn = { ...column };
+      if (newColumn.type === 'enum' && Array.isArray(newColumn.enumMap)) {
+        // 将对象数组格式转换为键值对对象
+        newColumn.enumMap = (newColumn.enumMap as any[]).reduce((acc: Record<string | number, string>, item: any) => {
+          acc[item.key] = item.value;
+          return acc;
+        }, {});
+      }
+      return newColumn;
+    });
+  }
 
+  return processedConfig;
+};
 const ConfigPreview: React.FC<ConfigPreviewProps> = ({ config, onPrev, onComplete }) => {
-  // 处理枚举映射字符串转换为对象
-  const processConfig = (config: PageConfig): PageConfig => {
-    const processedConfig = { ...config };
-    // 处理表格列中的枚举映射
-    if (processedConfig.columns) {
-      processedConfig.columns = processedConfig.columns.map(column => {
-        const newColumn = { ...column };
-        if (newColumn.type === 'enum' && Array.isArray(newColumn.enumMap)) {
-          // 将对象数组格式转换为键值对对象
-          newColumn.enumMap = (newColumn.enumMap as any[]).reduce((acc: Record<string | number, string>, item: any) => {
-            acc[item.key] = item.value;
-            return acc;
-          }, {});
-        }
-        return newColumn;
-      });
-    }
 
-    return processedConfig;
-  };
-
-  const processedConfig = processConfig(config);
-
+  const processedConfig = useMemo(() => processConfig(config), [config]);
   // 根据配置生成 mock 数据
   const generateMockData = (params: {
     pageSize: number;
@@ -133,26 +132,6 @@ const ConfigPreview: React.FC<ConfigPreviewProps> = ({ config, onPrev, onComplet
     });
   };
 
-  // 生成搜索表单代码
-  const getSearchFormCode = () => {
-    return generateSearchFormCode(config);
-  };
-
-  // 生成入口文件代码
-  const getEntryCode = () => {
-    return generateEntryCode(config);
-  };
-
-  // 生成 Web API 接口代码
-  const getWebApiCode = () => {
-    return generateWebApiCode();
-  };
-
-  // 生成表格代码
-  const getTableCode = () => {
-    return generateTableCode(config);
-  };
-
   return (
     <Card title="步骤4：配置预览" >
       <Tabs defaultActiveKey="preview">
@@ -163,64 +142,16 @@ const ConfigPreview: React.FC<ConfigPreviewProps> = ({ config, onPrev, onComplet
           />
         </TabPane>
         <TabPane tab="index.tsx" key="entry">
-          <Typography>
-            <Title level={4}>页面入口文件代码</Title>
-            <Paragraph>
-              <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4, overflow: 'auto' }}>
-                <code>{getEntryCode()}</code>
-              </pre>
-            </Paragraph>
-            <Paragraph>
-              <Text type="secondary">
-                这是完整的页面入口文件，包含了数据获取、状态管理、事件处理等完整逻辑。
-              </Text>
-            </Paragraph>
-          </Typography>
+            <CodeCopy code={generateEntryCode(processedConfig)} title="index.tsx" />
         </TabPane>
         <TabPane tab="SearchForm.tsx" key="search">
-          <Typography>
-            <Title level={4}>搜索表单组件代码</Title>
-            <Paragraph>
-              <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4, overflow: 'auto' }}>
-                <code>{getSearchFormCode()}</code>
-              </pre>
-            </Paragraph>
-            <Paragraph>
-              <Text type="secondary">
-                这是根据您的配置生成的搜索表单组件代码，可以直接在项目中使用。
-              </Text>
-            </Paragraph>
-          </Typography>
+          <CodeCopy code={generateSearchFormCode(processedConfig)} title="SearchForm.tsx" />
         </TabPane>
         <TabPane tab="DataTable.tsx" key="table">
-          <Typography>
-            <Title level={4}>表格组件代码</Title>
-            <Paragraph>
-              <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4, overflow: 'auto' }}>
-                <code>{getTableCode()}</code>
-              </pre>
-            </Paragraph>
-            <Paragraph>
-              <Text type="secondary">
-                这是根据您的配置生成的表格组件代码，包含了所有列的渲染逻辑和操作按钮。
-              </Text>
-            </Paragraph>
-          </Typography>
+          <CodeCopy code={generateTableCode(processedConfig)} title="DataTable.tsx" />
         </TabPane>
         <TabPane tab="webapi.ts" key="api">
-          <Typography>
-            <Title level={4}>Web API 接口代码</Title>
-            <Paragraph>
-              <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4, overflow: 'auto' }}>
-                <code>{getWebApiCode()}</code>
-              </pre>
-            </Paragraph>
-            <Paragraph>
-              <Text type="secondary">
-                这是根据您的配置生成的 Web API 接口方法，包含了完整的 CRUD 操作接口定义。
-              </Text>
-            </Paragraph>
-          </Typography>
+          <CodeCopy code={generateWebApiCode()} title="webapi.ts" />
         </TabPane>
 
       </Tabs>

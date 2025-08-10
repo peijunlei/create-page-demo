@@ -42,12 +42,11 @@ const PageConfigWizard: React.FC = () => {
       ),
     },
     {
-      title: '搜索表单配置',
+      title: '搜索项配置',
       content: (
         <SearchFormConfig
           initialValues={config.searchForm || []}
           onSave={(searchForm) => {
-            debugger
             setConfig({ ...config, searchForm });
             setCurrentStep(2);
           }}
